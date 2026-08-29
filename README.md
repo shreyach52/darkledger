@@ -1,10 +1,8 @@
 # DarkLedger
 
-**Dark web threat intelligence dashboard — ransomware leak-site monitoring, built solo as a portfolio project.**
+**Dark web threat intelligence dashboard — ransomware leak-site monitoring.**
 
 DarkLedger tracks victim postings made by ransomware groups on their dark web "name-and-shame" leak sites — the extortion pages threat actors publish when a victim organization refuses to pay. It ingests, normalizes, enriches, and visualizes this activity, giving a single searchable, exportable view of ransomware group behavior over time.
-
-This project was inspired by the SIH 2026 problem statement on **dark web threat actor de-anonymization**, though it is not affiliated with or submitted to SIH — it's an independent build exploring one legally and technically feasible slice of that larger problem space.
 
 ---
 
