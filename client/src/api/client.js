@@ -22,5 +22,9 @@ export async function getKnownEvents() {
   const { data } = await api.get('/stats/events');
   return data;
 } 
+export async function getAnomalies(window = 14) {
+  const { data } = await api.get('/stats/anomalies', { params: { window } });
+  return data;
+}
 
 export default api;

@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import Timeline from '../components/Timeline';
 import GroupLeaderboard from '../components/GroupLeaderboard';
-import { getTimeline, getTopGroups, getPostings } from '../api/client';
-import { getKnownEvents } from '../api/client';
+import AnomalyFeed from '../components/AnomalyFeed';
+import { getTimeline, getTopGroups, getPostings, getKnownEvents, getAnomalies } from '../api/client';
+
 export default function Overview() {
   useOutletContext();
   const [timeline, setTimeline] = useState([]);
@@ -11,16 +12,18 @@ export default function Overview() {
   const [topGroups, setTopGroups] = useState([]);
   const [recent, setRecent] = useState([]);
   const [events, setEvents] = useState([]);
+  const [anomalies, setAnomalies] = useState([]);
 
   useEffect(() => { getTimeline(interval).then(setTimeline); }, [interval]);
   useEffect(() => { getTopGroups(6).then(setTopGroups); }, []);
-  useEffect(() => { getKnownEvents().then(setEvents); }, []);
   useEffect(() => { getPostings({ page: 1, limit: 5 }).then((d) => setRecent(d.results)); }, []);
+  useEffect(() => { getKnownEvents().then(setEvents); }, []);
+  useEffect(() => { getAnomalies(14).then(setAnomalies); }, []);
 
   return (
     <>
       <div className="grid-primary">
-       <Timeline data={timeline} interval={interval} onIntervalChange={setInterval_} events={events} />
+        <Timeline data={timeline} interval={interval} onIntervalChange={setInterval_} events={events} />
         <GroupLeaderboard groups={topGroups} onSelectGroup={() => {}} />
       </div>
 
@@ -39,6 +42,8 @@ export default function Overview() {
           ))}
         </div>
       </div>
+
+      <AnomalyFeed anomalies={anomalies} />
     </>
   );
 }
