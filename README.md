@@ -21,7 +21,7 @@ DarkLedger consumes this exact category of dark web threat intelligence — aggr
 ---
 
 ## Features
-
+- **Anomaly detection** — flags unusual posting activity per group using a rolling mean/standard-deviation baseline (spikes >2σ above a group's typical rate), surfacing potential new campaigns or sudden shifts in behavior
 - **Automated ingestion** — polls leak-site posting data on a schedule, deduplicated against a stable source ID
 - **Sector classification** — derives victim industry from post descriptions via keyword matching
 - **Group rebrand mapping** — resolves known ransomware group aliases to a canonical name (e.g. tracking a gang across its rebrand history)
@@ -53,12 +53,20 @@ Each posting is stored with:
 Supporting collections track known group aliases (rebrand mapping) and known law enforcement events (takedown overlay).
 
 ---
+## Anomaly detection
 
+Each ransomware group's daily posting count is compared against its own rolling baseline (mean + standard deviation) over a trailing window (default 14 days). A day is flagged as a spike when a group's activity exceeds roughly two standard deviations above its typical rate — a lightweight statistical technique used in real CTI/SOC tooling for surfacing unusual behavior without requiring labeled training data.
+
+This is intentionally simple rather than a black-box ML model: it's explainable (every flag traces back to a specific mean/stddev calculation you can verify), and it degrades honestly — with limited historical data, few or no anomalies will be flagged, which is statistically correct behavior rather than a failure of the system.
+
+---
 ## Scope and limitations
 
 This project deliberately does **not** crawl live Tor hidden services or dark web marketplaces directly. It consumes an existing, legal, publicly maintained threat intelligence feed. This was a conscious design choice: live dark web crawling raises real legal and safety concerns for an independent student project without institutional/legal backing, whereas the analytical layer — ingestion, enrichment, correlation, visualization — is the transferable, resume-relevant engineering skill regardless of where the raw data originates.
 
 Sector classification is keyword-based and will misclassify or under-classify some postings, particularly terse one-word descriptions. This is a known, acceptable limitation rather than a bug — a production system would need a proper NLP classifier trained on labeled data.
+
+Anomaly detection requires enough historical data per group to establish a meaningful baseline — with a short data collection window, most groups won't yet have enough data points for the standard deviation to be statistically meaningful. This improves automatically as the ingestion pipeline runs longer.
 
 ---
 
