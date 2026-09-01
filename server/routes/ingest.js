@@ -4,7 +4,7 @@ const { fetchRansomlook, upsertPosts } = require('../ingestion/fetchRansomlook')
 
 // A simple shared-secret check so random people can't trigger this endlessly
 router.get('/run', async (req, res) => {
-  const secret = req.headers['x-ingest-secret'];
+  const secret = req.query.secret || req.headers['x-ingest-secret'];
   if (secret !== process.env.INGEST_SECRET) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
