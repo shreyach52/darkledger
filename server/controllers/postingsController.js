@@ -1,9 +1,14 @@
 const Posting = require('../models/Posting');
+const { sanitizeQuery } = require('../utils/sanitizeQuery');
 
 // GET /postings?group=&sector=&country=&status=&from=&to=&page=&limit=
 async function getPostings(req, res) {
   try {
-    const { group, sector, country, status, from, to, page = 1, limit = 25 } = req.query;
+    const { group, sector, country, status, from, to } = sanitizeQuery(req.query, [
+      'group', 'sector', 'country', 'status', 'from', 'to',
+    ]);
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 25));
 
     const filter = {};
     if (group) filter.group_name = group;
@@ -12,18 +17,19 @@ async function getPostings(req, res) {
     if (status) filter.status = status;
     if (from || to) {
       filter.discovered = {};
-      if (from) filter.discovered.$gte = new Date(from);
-      if (to) filter.discovered.$lte = new Date(to);
+      if (from && !isNaN(Date.parse(from))) filter.discovered.$gte = new Date(from);
+      if (to && !isNaN(Date.parse(to))) filter.discovered.$lte = new Date(to);
+      if (Object.keys(filter.discovered).length === 0) delete filter.discovered;
     }
 
-    const skip = (Number(page) - 1) * Number(limit);
+    const skip = (page - 1) * limit;
 
     const [postings, total] = await Promise.all([
-      Posting.find(filter).sort({ discovered: -1 }).skip(skip).limit(Number(limit)),
+      Posting.find(filter).sort({ discovered: -1 }).skip(skip).limit(limit),
       Posting.countDocuments(filter),
     ]);
 
-    res.json({ total, page: Number(page), limit: Number(limit), results: postings });
+    res.json({ total, page, limit, results: postings });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to fetch postings' });
@@ -45,15 +51,18 @@ async function getPostingById(req, res) {
 // GET /postings/export?format=csv|json&group=&status=&from=&to=
 async function exportPostings(req, res) {
   try {
-    const { format = 'json', group, status, from, to } = req.query;
+    const { format, group, status, from, to } = sanitizeQuery(req.query, [
+      'format', 'group', 'status', 'from', 'to',
+    ]);
 
     const filter = {};
     if (group) filter.group_name = group;
     if (status) filter.status = status;
     if (from || to) {
       filter.discovered = {};
-      if (from) filter.discovered.$gte = new Date(from);
-      if (to) filter.discovered.$lte = new Date(to);
+      if (from && !isNaN(Date.parse(from))) filter.discovered.$gte = new Date(from);
+      if (to && !isNaN(Date.parse(to))) filter.discovered.$lte = new Date(to);
+      if (Object.keys(filter.discovered).length === 0) delete filter.discovered;
     }
 
     const postings = await Posting.find(filter).sort({ discovered: -1 }).lean();
