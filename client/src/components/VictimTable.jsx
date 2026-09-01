@@ -11,6 +11,13 @@ function formatDate(d) {
   return new Date(d).toISOString().slice(0, 16).replace('T', ' ');
 }
 
+function resolveLink(link) {
+  if (!link) return null;
+  if (link.startsWith('http://') || link.startsWith('https://')) return link;
+  // relative paths from the source belong on ransomlook's own domain
+  return `https://www.ransomlook.io${link.startsWith('/') ? '' : '/'}${link}`;
+}
+
 export default function VictimTable({ postings = [], total, page, limit, onPageChange }) {
   const totalPages = Math.max(1, Math.ceil(total / limit));
 
@@ -47,15 +54,15 @@ export default function VictimTable({ postings = [], total, page, limit, onPageC
                   {p.status?.replace('_', ' ')}
                 </span>
               </td>
-              <td>
-                {p.link ? (
-                  <a href={p.link} target="_blank" rel="noreferrer" className="victim-link">
-                    <ExternalLink size={12} strokeWidth={2} />
-                  </a>
-                ) : (
-                  <span className="cell-dim mono">—</span>
-                )}
-              </td>
+                <td>
+                  {p.link ? (
+              <a href={resolveLink(p.link)} target="_blank" rel="noreferrer" className="victim-link">
+                <ExternalLink size={12} strokeWidth={2} />
+              </a>
+            ) : (
+              <span className="cell-dim mono">—</span>
+            )}
+                        </td>
             </tr>
           ))}
           {postings.length === 0 && (
