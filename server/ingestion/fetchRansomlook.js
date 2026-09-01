@@ -48,9 +48,9 @@ function getStatus(raw) {
     raw.description.trim() !== '' &&
     raw.description.trim().toLowerCase() !== 'to be announced...';
 
-  const hasRealTitle =
-    raw.post_title && !/^[A-Z][.\s]*(\.\.\.)?$/.test(raw.post_title.trim());
-  // catches placeholder titles like "Q... E..." — single letters followed by dots
+  const placeholderPattern = /^([A-Z]\.\.\.\s*)+$/;
+const hasRealTitle =
+  raw.post_title && !placeholderPattern.test(raw.post_title.trim());
 
   return hasRealDescription || hasRealTitle ? 'disclosed' : 'pending_disclosure';
 }
