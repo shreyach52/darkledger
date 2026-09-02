@@ -1,26 +1,21 @@
 # DarkLedger
 
-**Dark web threat intelligence dashboard — ransomware leak-site monitoring.**
+Dark web threat intelligence dashboard — ransomware leak-site monitoring.
 
 DarkLedger tracks victim postings made by ransomware groups on their dark web "name-and-shame" leak sites — the extortion pages threat actors publish when a victim organization refuses to pay. It ingests, normalizes, enriches, and visualizes this activity, giving a single searchable, exportable view of ransomware group behavior over time.
 
----
+## Purpose & scope
+
+This is an educational/portfolio project that visualizes and analyzes publicly available threat intelligence data. It does not crawl Tor hidden services, access dark web marketplaces directly, collect personal data, or contain any exploit/scraping code targeting live criminal infrastructure. It is not affiliated with any organization, law enforcement agency, or ransomlook.io itself.
 
 ## Why dark web leak-site monitoring
 
-Ransomware groups operate through Tor hidden services (`.onion` sites) specifically to stay anonymous while extorting victims. When a victim doesn't pay, groups publish the company's name — sometimes with stolen data samples — on their dark web leak site as public pressure. This "double extortion" pattern has become the dominant ransomware business model.
+Ransomware groups use Tor hidden services to stay anonymous while extorting victims — when a victim doesn't pay, groups publish the company's name (sometimes with stolen data) on a leak site as public pressure. CTI teams monitor these sites to track active groups, spot rebrands, correlate activity against law enforcement takedowns, and build early-warning intelligence.
 
-Security researchers and CTI (cyber threat intelligence) teams monitor these leak sites — many of which are only reachable via Tor — to:
-- Track which threat actor groups are active and how their targeting shifts over time
-- Identify group rebrands (a gang shuts down and relaunches under a new name to evade law enforcement pressure and sanctions)
-- Correlate group activity against law enforcement takedowns
-- Build early-warning intelligence for potentially affected sectors/regions
-
-DarkLedger consumes this exact category of dark web threat intelligence — aggregated via [ransomlook.io](https://www.ransomlook.io), a public, legal service that monitors ransomware leak sites (including onion services) on researchers' behalf — and turns it into a structured, queryable dataset rather than scattered leak-site screenshots.
-
----
+DarkLedger consumes this data — aggregated via [ransomlook.io](https://www.ransomlook.io), a public, legal service — and turns it into a structured, queryable dataset rather than scattered leak-site screenshots.
 
 ## Features
+
 - **Anomaly detection** — flags unusual posting activity per group using a rolling mean/standard-deviation baseline (spikes >2σ above a group's typical rate), surfacing potential new campaigns or sudden shifts in behavior
 - **Automated ingestion** — polls leak-site posting data on a schedule, deduplicated against a stable source ID
 - **Sector classification** — derives victim industry from post descriptions via keyword matching
@@ -29,8 +24,6 @@ DarkLedger consumes this exact category of dark web threat intelligence — aggr
 - **Group leaderboard** — most active ransomware groups by posting volume
 - **Searchable, filterable victim table** — by group, status, date range
 - **CSV / JSON export** — scoped to whatever filters are active
-
----
 
 ## Architecture
 
@@ -45,6 +38,7 @@ ransomlook.io API → Node ingestion (cron) → MongoDB → Express API → Reac
 ## Data model
 
 Each posting is stored with:
+
 - `misp_uuid` — stable unique ID from source, used as the dedupe key
 - `post_title`, `group_name`, `description`, `discovered`, `link`
 - `sector` — derived via keyword classification
@@ -52,23 +46,28 @@ Each posting is stored with:
 
 Supporting collections track known group aliases (rebrand mapping) and known law enforcement events (takedown overlay).
 
----
 ## Anomaly detection
 
 Each ransomware group's daily posting count is compared against its own rolling baseline (mean + standard deviation) over a trailing window (default 14 days). A day is flagged as a spike when a group's activity exceeds roughly two standard deviations above its typical rate — a lightweight statistical technique used in real CTI/SOC tooling for surfacing unusual behavior without requiring labeled training data.
 
 This is intentionally simple rather than a black-box ML model: it's explainable (every flag traces back to a specific mean/stddev calculation you can verify), and it degrades honestly — with limited historical data, few or no anomalies will be flagged, which is statistically correct behavior rather than a failure of the system.
 
----
+## Testing
+
+Core ingestion logic (data normalization, sector classification, and disclosure-status inference) is covered by Jest unit tests. These tests caught a real bug during development — a placeholder-title regex that failed to correctly detect multi-part anonymized victim names (e.g. `"Q... E..."`), causing some undisclosed victims to be miscategorized as disclosed. The fix was verified by the test suite and backfilled against existing data.
+
+Run tests:
+```bash
+cd server
+npm test
+```
+
 ## Scope and limitations
 
-This project deliberately does **not** crawl live Tor hidden services or dark web marketplaces directly. It consumes an existing, legal, publicly maintained threat intelligence feed. This was a conscious design choice: live dark web crawling raises real legal and safety concerns for an independent student project without institutional/legal backing, whereas the analytical layer — ingestion, enrichment, correlation, visualization — is the transferable, resume-relevant engineering skill regardless of where the raw data originates.
-
-Sector classification is keyword-based and will misclassify or under-classify some postings, particularly terse one-word descriptions. This is a known, acceptable limitation rather than a bug — a production system would need a proper NLP classifier trained on labeled data.
-
-Anomaly detection requires enough historical data per group to establish a meaningful baseline — with a short data collection window, most groups won't yet have enough data points for the standard deviation to be statistically meaningful. This improves automatically as the ingestion pipeline runs longer.
-
----
+- No live Tor crawling — consumes an existing, legal, publicly maintained feed instead, by design
+- Sector classification is keyword-based and will misclassify terse descriptions
+- Anomaly detection needs more historical data per group before flags are statistically meaningful
+- Tests currently cover ingestion/enrichment logic only, not API routes or the frontend
 
 ## Running locally
 
@@ -80,7 +79,7 @@ npm install
 node server.js
 ```
 
-**Ingestion (run once, then optionally schedule via cron.js)**
+**Ingestion** (run once, then optionally schedule via cron.js)
 ```bash
 cd server/ingestion
 node fetchRansomlook.js
@@ -93,8 +92,6 @@ npm install
 # create .env with VITE_API_URL=http://localhost:5000
 npm run dev
 ```
-
----
 
 ## Credits
 
