@@ -321,3 +321,18 @@
   position: relative;
   z-index: 1;
 }
+.login-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.login-card { width: 320px; }
+.login-card input {
+  background: var(--bg-surface-raised);
+  border: 1px solid var(--border-hair);
+  color: var(--text-bright);
+  padding: 8px 10px;
+  border-radius: 2px;
+  font-size: 12px;
+}

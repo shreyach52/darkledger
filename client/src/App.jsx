@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Routes, Route, Outlet } from 'react-router-dom';
+import { Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import './index.css';
 import './layout.css';
 import Sidebar from './components/Sidebar';
@@ -9,6 +9,9 @@ import Victims from './pages/Victims';
 import Groups from './pages/Groups';
 import { getTimeline } from './api/client';
 import BinaryRain from './components/BinaryRain';
+
+
+
 
 function Shell() {
   const [search, setSearch] = useState('');
@@ -39,7 +42,6 @@ return (
   </>
 );
 }
-
 export default function App() {
   return (
     <Routes>

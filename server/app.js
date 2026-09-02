@@ -5,6 +5,8 @@ const rateLimit = require('express-rate-limit');
 const postingsRoutes = require('./routes/postings');
 const statsRoutes = require('./routes/stats');
 const ingestRoutes = require('./routes/ingest');
+const authRoutes = require('./routes/auth');
+const verifyToken = require('./middleware/verifyToken');
 const app = express();
 
 // Only allow requests from the deployed frontend(s) and localhost in dev.
@@ -44,8 +46,8 @@ const ingestLimiter = rateLimit({
 
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
+
 app.use('/postings', publicLimiter, postingsRoutes);
 app.use('/stats', publicLimiter, statsRoutes);
 app.use('/ingest', ingestLimiter, ingestRoutes);
-
 module.exports = app;
