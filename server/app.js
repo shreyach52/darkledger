@@ -7,10 +7,11 @@ const statsRoutes = require('./routes/stats');
 const ingestRoutes = require('./routes/ingest');
 const app = express();
 
-// Only allow requests from the deployed frontend (and localhost in dev).
-// Set CLIENT_ORIGIN in your .env, e.g. https://darkledger.vercel.app
+// Only allow requests from the deployed frontend(s) and localhost in dev.
+// Set CLIENT_ORIGIN in your .env as a comma-separated list, e.g.
+// https://darkledger-monitor.vercel.app,https://darkledger-five.vercel.app
 const allowedOrigins = [
-  process.env.CLIENT_ORIGIN,
+  ...(process.env.CLIENT_ORIGIN || '').split(',').map((o) => o.trim()),
   'http://localhost:5173',
 ].filter(Boolean);
 
